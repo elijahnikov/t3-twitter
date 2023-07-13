@@ -9,6 +9,7 @@ import LoadingSpinner, {
   LoadingPage,
 } from "~/components/LoadingSpinner/LoadingSpinner";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
@@ -22,6 +23,14 @@ const CreatePostWizard = () => {
     onSuccess: () => {
       setInputText("");
       void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to post");
+      }
     },
   });
 
@@ -40,9 +49,24 @@ const CreatePostWizard = () => {
         className="grow bg-transparent outline-none"
         value={inputText}
         disabled={isPosting}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (inputText !== "") {
+              mutate({ content: inputText });
+            }
+          }
+        }}
         onChange={(e) => setInputText(e.target.value)}
       />
-      <button onClick={() => mutate({ content: inputText })}>Post</button>
+      {inputText !== "" && !isPosting && (
+        <button onClick={() => mutate({ content: inputText })}>Post</button>
+      )}
+      {isPosting && (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size={20} />
+        </div>
+      )}
     </div>
   );
 };

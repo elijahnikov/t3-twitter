@@ -20,7 +20,7 @@ const filterUserForClient = (user: User) => {
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(3, "30 s"),
+  limiter: Ratelimit.slidingWindow(1, "30 s"),
   analytics: true,
   prefix: "@upstash/ratelimit",
 });
