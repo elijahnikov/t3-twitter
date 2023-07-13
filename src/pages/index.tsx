@@ -8,11 +8,22 @@ import Image from "next/image";
 import LoadingSpinner, {
   LoadingPage,
 } from "~/components/LoadingSpinner/LoadingSpinner";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
+  const [inputText, setInputText] = useState<string>("");
   const { user } = useUser();
+
+  const ctx = api.useContext();
+
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInputText("");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
 
   if (!user) return null;
   return (
@@ -27,11 +38,17 @@ const CreatePostWizard = () => {
       <input
         placeholder="Type something"
         className="grow bg-transparent outline-none"
+        value={inputText}
+        disabled={isPosting}
+        onChange={(e) => setInputText(e.target.value)}
       />
+      <button onClick={() => mutate({ content: inputText })}>Post</button>
     </div>
   );
 };
+
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+
 const PostView = (props: PostWithUser) => {
   const { post, author } = props;
   return (
@@ -50,7 +67,7 @@ const PostView = (props: PostWithUser) => {
             {dayjs(post.createdAt).fromNow()}
           </span>
         </div>
-        <span>{post.content}</span>
+        <span className="text-xl">{post.content}</span>
       </div>
     </div>
   );
