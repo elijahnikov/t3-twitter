@@ -13,8 +13,26 @@ import { prisma } from "~/server/db";
 import superjson from "superjson";
 import { PageLayout } from "~/components/Layout/Layout";
 import Image from "next/image";
+import { LoadingPage } from "~/components/LoadingSpinner/LoadingSpinner";
+import PostView from "~/components/PostView/PostView";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+
+const ProfileFeed = ({ userId }: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({ userId });
+
+  if (isLoading) return <LoadingPage />;
+
+  if (!data || data.length === 0) return <div>User has not posted.</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { data, isLoading } = api.profile.getUserByUsername.useQuery({
@@ -41,6 +59,7 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
         <div className="h-[64px]"></div>
         <div className="p-4 text-2xl font-bold">@{data.username ?? ""}</div>
         <div className="w-full border-b border-slate-700"></div>
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );
