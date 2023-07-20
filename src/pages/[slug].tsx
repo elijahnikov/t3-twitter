@@ -15,6 +15,7 @@ import { PageLayout } from "~/components/Layout/Layout";
 import Image from "next/image";
 import { LoadingPage } from "~/components/LoadingSpinner/LoadingSpinner";
 import PostView from "~/components/PostView/PostView";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
@@ -66,12 +67,7 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
 };
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: { prisma, userId: null },
-    transformer: superjson,
-  });
-
+  const helpers = generateSSGHelper();
   const slug = context.params?.slug;
 
   if (typeof slug !== "string") throw new Error("No slug");
